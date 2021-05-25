@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="app">
+  
+    X: {{x}}
+    Y: {{y}}
+
+    <hr>
+
+    <button @click="increase">加1</button> &nbsp;&nbsp;
+    <span> {{ count }}</span>
+  </div>
+  <script type="module">
+    import { createApp, reactive, onMounted, onUnmounted, toRefs, ref } from './node_modules/vue/dist/vue.esm-browser.js'
+    function useMousePosition  () { 
+        const position = reactive({
+          x: 0,
+          y: 0
+        })
+
+        const update = e => {
+          position.x = e.pageX
+          position.y = e.pageY
+        }
+
+        onMounted(() => {
+          globalThis.addEventListener('mousemove', update)
+        })
+
+        onUnmounted(() => {
+          window.addEventListener('mousemove', update)
+        })
+
+        return toRefs(position)
+      }
+    function useCount () { 
+      const count = ref(0)
+      return {
+        count,
+        increase: () => {
+          count.value++
+        }
+      }
+    }
+    const app = createApp({
+      setup () {
+        const {x, y} = useMousePosition()
+        return {
+          x,
+          y,
+          ...useCount()
+        }
+      },
+      mounted () {
+        this.position.x = 100
+      }
+    })
+    console.log(app)
+
+    app.mount("#app")
+  </script>
+</body>
+</html>
