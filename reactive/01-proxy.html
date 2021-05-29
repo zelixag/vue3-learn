@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    'use strict'; 
+    // 问题一： set 和 deleteProperty 中需要返回布尔类型的值
+    // 在严格模式下，如果返回 false 的话会出现 Type Error
+    const target = {
+      foo: 'bar',
+      bar: 'baz'
+    }
+    // Reflect.getPrototypeOf
+    // Object.getPrototypeOf
+    const proxy = new Proxy(target, {
+      get (target, key, receiver) {
+        // return target[key]
+        return Reflect.get(target, key, receiver)
+      },
+      set (target, key, value, receiver) {
+        // target[key] = value
+        Reflect.set(target, key, value, receiver)
+      },
+      deleteProperty (target, key) {
+        // delete target[key]
+        Reflect.deleteProperty(target, key)
+      }
+    })
+  </script>
+</body>
+</html>
