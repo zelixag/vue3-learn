@@ -66,3 +66,59 @@ export function trigger (target, key) {
     })
   }
 }
+
+export function ref (raw) {
+  // 判断raw 是否是ref创建的对象，如果是直接返回
+  if(isObject(raw) && raw.__v_isRef) {
+    return raw
+  }
+
+  // 如果是一个普通对象则convert那里调用reactive，如果是原始类型值直接返回
+  let value = convert(raw);
+  // 创建一个对象，并添加一个value属性成员，生成响应式对象。并做标记是通过ref生成的
+  const result = {
+    __v_isRef: true,
+    get value () {
+      track(result, 'value')
+      return value
+    },
+    set value (newValue) {
+      if(newValue !== value) {
+        raw = newValue
+        value = convert(raw);
+        trigger(result, 'value')
+      }
+    }
+  }
+  return result
+}
+
+export function toRefs (proxy) {
+  const ret = proxy instanceof Array ? new Array(proxy.length) : {}
+
+  for(const key in proxy) {
+    ret[key] = toProxyRef(proxy, key)// 返回类似的ref对象，没有进行依赖收集
+  }
+  return ret
+}
+
+function toProxyRef (proxy, key) {
+  const r = {
+    __v_isRef: true,
+    get value () {
+      // 这里不需要去收集依赖，因为这里会有自身的proxy里面去收集
+      return proxy[key] // 当这样访问proxy对象的key属性时就会触发proxy对象依赖收集
+    },
+    set value(newValue) {
+      proxy[key] = newValue // 这设置值的时候也会触发proxy key的更新
+    }
+  }
+  return r
+}
+
+export function computed (getter) {
+  const result = ref();
+  effect(() => (result.value = getter()))
+
+  return result
+}
